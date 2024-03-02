@@ -7,11 +7,19 @@ import {
   TextField,
   Alert,
 } from "@mui/material";
+import { useAuth } from "../providers/AuthProvider";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const inputRef = useRef();
   const passwordRef = useRef();
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const { setAuth, setAuthUser } = useAuth();
+
+  const navigate = useNavigate();
 
   return (
     <Box>
@@ -20,26 +28,57 @@ const Login = () => {
       </Typography>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const handle = inputRef.current.value;
           const password = passwordRef.current.value;
+
           if (!handle || !password) {
             setHasError(true);
-          } else {
-            setHasError(false);
+            setErrorMessage("handle or password required");
           }
-          console.log(handle, password);
+
+          const api = import.meta.env.VITE_API_URL;
+          const res = await fetch(`${api}/login`, {
+            method: "POST",
+            body: JSON.stringify({ handle, password }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!res.ok) {
+            // setErrorMessage((await res.json().msg))
+            setErrorMessage("Incorrect Handle or Password");
+            setHasError(true);
+            return false;
+          }
+
+          const data = await res.json();
+          localStorage.setItem("token", data.token);
+
+          fetch(`${api}/verify`, {
+            headers: {
+              Authorization: `Bearer ${data.token}`,
+            },
+          })
+            .then((res) => res.json())
+            .then((user) => {
+              setAuth(true);
+              setAuthUser(user);
+              navigate("/");
+            });
         }}
       >
         {hasError && (
           <Alert sx={{ my: 2 }} severity="error">
-            Login Unsuccessful.
+            {errorMessage}
           </Alert>
         )}
         <TextField
           inputRef={inputRef}
           fullWidth
+          type="text"
           label="Handle"
           sx={{ my: 2 }}
           variant="outlined"

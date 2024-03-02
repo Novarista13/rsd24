@@ -7,6 +7,7 @@ import {
   TextField,
   Alert,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const inputRef = useRef();
@@ -15,7 +16,9 @@ const Register = () => {
   const nameRef = useRef();
   const profileRef = useRef();
   const [hasError, setHasError] = useState(false);
-  const [passwordError, setPasswordError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const navigate = useNavigate();
 
   return (
     <Box>
@@ -24,27 +27,47 @@ const Register = () => {
       </Typography>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const handle = inputRef.current.value;
           const name = nameRef.current.value;
           const password = passwordRef.current.value;
           const confirmPassword = confirmRef.current.value;
           const profile = profileRef.current.value;
-          if (!handle || !password || !confirmPassword || !name || !profile) {
+          if (!name || !handle || !password || !confirmPassword) {
+            setErrorMessage("name, handle, password all required");
             setHasError(true);
-          } else {
-            setHasError(false);
           }
           if (password !== confirmPassword) {
-            setPasswordError(true);
+            setErrorMessage("passwords didn't match");
+            setHasError(true);
           }
-          console.log(password !== confirmPassword);
+
+          const api = import.meta.env.VITE_API_URL;
+          const res = await fetch(`${api}/users`, {
+            method: "POST",
+            body: JSON.stringify({ name, handle, password }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!res.ok) {
+            // setErrorMessage((await res.json().msg))
+            setErrorMessage("Something went wrong, try again");
+            setHasError(true);
+            return false;
+          }
+
+          const data = await res.json();
+          if (data._id) {
+            navigate("/login");
+          }
         }}
       >
         {hasError && (
           <Alert sx={{ my: 2 }} severity="error">
-            You need to fill all the fields.
+            {errorMessage}
           </Alert>
         )}
 
@@ -71,11 +94,7 @@ const Register = () => {
           sx={{ my: 2 }}
           variant="outlined"
         />
-        {!hasError && passwordError && (
-          <Alert sx={{ my: 2 }} severity="error">
-            passwords didn't match
-          </Alert>
-        )}
+
         <TextField
           inputRef={passwordRef}
           fullWidth
