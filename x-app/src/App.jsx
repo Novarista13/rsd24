@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import AddPost from "./pages/AddPost";
+import Likes from "./pages/Likes";
 
 const router = createBrowserRouter([
   {
@@ -20,12 +22,20 @@ const router = createBrowserRouter([
         element: <Login />,
       },
       {
-        path: "/profile",
+        path: "/profile/:id",
         element: <Profile />,
       },
       {
         path: "/register",
         element: <Register />,
+      },
+      {
+        path: "/post/new",
+        element: <AddPost />,
+      },
+      {
+        path: "/likes/:id",
+        element: <Likes />,
       },
     ],
   },

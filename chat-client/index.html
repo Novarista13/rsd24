@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat client</title>
+    <style>
+      body {
+        max-width: 500px;
+        margin: 20px auto;
+      }
+      ul {
+        list-style: none;
+        margin: 0 0 20px 0;
+        padding: 0;
+      }
+      ul li {
+        padding: 10px;
+        border-bottom: 1px solid grey;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chat</h1>
+    <ul class="msgs"></ul>
+    <div>
+      <input type="text" id="name" max="10" placeholder="name" />
+      <input type="text" id="msg" placeholder="message" />
+      <button>Button</button>
+    </div>
+
+    <script>
+      const socket = new WebSocket("ws://localhost:8080/chat");
+
+      socket.addEventListener("open", (e) => {
+        console.log("Chat connection opened");
+      });
+
+      socket.addEventListener("message", (e) => {
+        const { name, msg } = JSON.parse(e.data);
+        const li = document.createElement("li");
+        li.innerHTML = `<b>${name}</b> ${msg}`;
+        document.querySelector(".msgs").append(li);
+        document.querySelector("#name").value = "";
+        document.querySelector("#msg").value = "";
+      });
+
+      document.querySelector("button").onclick = () => {
+        const name = document.querySelector("#name").value;
+        const msg = document.querySelector("#msg").value;
+
+        if (!name || !msg) return false;
+
+        socket.send(JSON.stringify({ name, msg }));
+      };
+    </script>
+  </body>
+</html>

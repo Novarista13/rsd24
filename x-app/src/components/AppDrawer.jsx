@@ -1,34 +1,34 @@
 import {
-  Drawer,
-  Box,
   Avatar,
-  Typography,
+  Box,
+  Drawer,
   List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
+  Typography,
 } from "@mui/material";
-import { pink, blue, grey } from "@mui/material/colors";
+import { blue, grey, pink } from "@mui/material/colors";
 
 import {
   Home as HomeIcon,
-  Person as ProfileIcon,
-  PersonAdd as RegisterIcon,
   Login as LoginIcon,
   Logout as LogoutIcon,
+  Person as ProfileIcon,
+  PersonAdd as RegisterIcon,
 } from "@mui/icons-material";
 
-import { useUIState } from "../providers/UIStateProvider";
-import { useAuth } from "../providers/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../providers/AuthProvider";
+import { useUIState } from "../providers/UIStateProvider";
 
 const AppDrawer = () => {
   const { openDrawer, setOpenDrawer } = useUIState();
   const { auth, setAuth, authUser, setAuthUser } = useAuth();
   const navigate = useNavigate();
-
+  const photo = `${import.meta.env.VITE_PROFILE_PHOTOS}/${authUser?.profile}`;
+  console.log(authUser);
   return (
     <Drawer
       anchor="left"
@@ -48,7 +48,10 @@ const AppDrawer = () => {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Avatar sx={{ width: 98, height: 98, background: pink[500] }}>
+              <Avatar
+                src={photo}
+                sx={{ width: 98, height: 98, background: pink[500] }}
+              >
                 {authUser?.name[0]}
               </Avatar>
               <Box sx={{ ml: 3 }}>
@@ -78,7 +81,8 @@ const AppDrawer = () => {
                         setAuthUser({});
                         localStorage.removeItem("token");
                         navigate("/login");
-                      } else navigate(i === "home" ? `/` : `/${i}`);
+                      } else
+                        navigate(i === "home" ? `/` : `/${i}/${authUser._id}`);
                       setOpenDrawer(false);
                     }}
                     disableRipple

@@ -15,10 +15,70 @@ const mongo = new MongoClient(process.env.MONGO_HOST);
 const xdb = mongo.db("x");
 const xusers = xdb.collection("users");
 
+const multer = require("multer");
+const coverUpload = multer({ dest: "photos/covers" });
+const profileUpload = multer({ dest: "photos/profiles" });
+
 const { auth } = require("../middlewares/auth");
 
+// var storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "photos/profiles");
+//   },
+//   filename: function (req, file, cb) {
+//     console.log(file.mimetype);
+//     cb(
+//       null,
+//       Date.now() +
+//         (file.mimetype === "image/jpeg"
+//           ? ".jpg"
+//           : file.mimetype === "image/png"
+//           ? ".png"
+//           : null)
+//     );
+//   },
+// });
+
+// var upload = multer({ storage: storage });
+
+router.post(
+  "/users/profile",
+  auth,
+  profileUpload.single("profile"),
+  async (req, res) => {
+    const id = res.locals.user._id;
+    const { filename } = req.file;
+
+    const result = await xusers.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { profile: filename } }
+    );
+    return res.json(result);
+  }
+);
+router.post(
+  "/users/cover",
+  auth,
+  coverUpload.single("cover"),
+  async (req, res) => {
+    const id = res.locals.user._id;
+    const { filename } = req.file;
+
+    const result = await xusers.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { cover: filename } }
+    );
+    return res.json(result);
+  }
+);
+
 router.get("/users", auth, async (req, res) => {
-  const data = await xusers.find().project({ password: 0 }).limit(20).toArray();
+  const data = await xusers
+    .find()
+    .project({ password: 0 })
+    .sort({ _id: -1 })
+    .limit(20)
+    .toArray();
   return res.json(data);
 });
 
@@ -46,6 +106,15 @@ router.get("/verify", auth, (req, res) => {
   return res.json(res.locals.user);
 });
 
+router.get("/users/likes/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const post = await xdb.collection("posts").findOne({ _id: new ObjectId(id) });
+  const users = await xusers.find({ _id: { $in: post.likes } }).toArray();
+
+  return res.json(users);
+});
+
 router.get("/users/:id", async (req, res) => {
   const { id } = req.params;
   const data = await xusers.findOne(
@@ -56,8 +125,6 @@ router.get("/users/:id", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  // const { handle, password } = req.query;
-  // console.log(req.query);
   const { handle, password } = req.body;
   if (!handle || !password) {
     return res.status(400).json({

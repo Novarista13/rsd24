@@ -11,7 +11,6 @@ export function useAppTheme() {
 
 export default function AppThemeProvider({ children }) {
   const [mode, setMode] = useState("dark");
-  // console.log(mode);
   const theme = useMemo(() => {
     return createTheme({
       palette: {
