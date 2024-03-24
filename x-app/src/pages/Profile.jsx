@@ -1,9 +1,4 @@
 import React, { useEffect, useState } from "react";
-
-import PostCard from "../components/PostCard";
-import { useAuth } from "../providers/AuthProvider";
-import { useParams } from "react-router-dom";
-
 import {
   Box,
   CircularProgress,
@@ -13,6 +8,12 @@ import {
 } from "@mui/material";
 import { blue, pink } from "@mui/material/colors";
 
+import { useAuth } from "../providers/AuthProvider";
+import { Link, useParams, useNavigate } from "react-router-dom";
+
+import PostCard from "../components/PostCard";
+import FollowButton from "../components/FollowButton";
+
 const Profile = () => {
   const [posts, setPosts] = useState([]);
   const [user, setUser] = useState({});
@@ -21,6 +22,8 @@ const Profile = () => {
   const [cover, setCover] = useState("");
   const { authUser } = useAuth();
   const { id } = useParams();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -74,9 +77,8 @@ const Profile = () => {
     setPosts(result);
   };
 
-  const deletePost = (_id) => {
-    const result = posts.filter((post) => post._id !== _id);
-    setPosts(result);
+  const remove = (_id) => {
+    setPosts(posts.filter((post) => post._id !== _id));
   };
 
   const getFile = async () => {
@@ -107,7 +109,7 @@ const Profile = () => {
 
     const formData = new FormData();
     formData.append("profile", file, filename);
-    console.log(formData);
+
     const api = import.meta.env.VITE_API_URL;
     const token = localStorage.getItem("token");
     const res = await fetch(`${api}/users/profile`, {
@@ -132,7 +134,7 @@ const Profile = () => {
 
     const formData = new FormData();
     formData.append("cover", file, filename);
-    console.log(formData);
+
     const api = import.meta.env.VITE_API_URL;
     const token = localStorage.getItem("token");
     const res = await fetch(`${api}/users/cover`, {
@@ -160,7 +162,7 @@ const Profile = () => {
           user?._id === authUser?._id && changeCover();
         }}
       >
-        {cover && <img src={cover} width="100%" alt="cover" />}
+        {cover && <img src={cover} width="100%" />}
       </Box>
       <Box
         sx={{ marginTop: "-64px", marginBottom: "40px", textAlign: "center" }}
@@ -170,7 +172,6 @@ const Profile = () => {
             user?._id === authUser?._id && changePhoto();
           }}
         >
-          {" "}
           <Avatar
             src={photo}
             sx={{
@@ -180,6 +181,47 @@ const Profile = () => {
             }}
           ></Avatar>
         </Button>
+        <Typography>{user.name}</Typography>
+        <Typography sx={{ fontSize: "0.8em", color: "gray" }}>
+          @{user.handle}
+        </Typography>
+        <Box
+          sx={{
+            my: 1,
+            display: "flex",
+            gap: 1,
+            justifyContent: "center",
+            fontSize: "0.8em",
+          }}
+        >
+          <Link
+            style={{ textDecoration: "none", color: "deeppink" }}
+            to={`/followers/${user._id}`}
+          >
+            {(user.followers && user.followers.length) || 0} Followers
+          </Link>
+          <span>•</span>
+          <Link
+            style={{ textDecoration: "none", color: "deeppink" }}
+            to={`/following/${user._id}`}
+          >
+            {(user.following && user.following.length) || 0} Following
+          </Link>
+        </Box>
+        {authUser._id === user._id ? (
+          <Button
+            size="small"
+            variant="contained"
+            sx={{ borderRadius: 5, px: 3 }}
+            onClick={() => {
+              navigate("/edit");
+            }}
+          >
+            Edit
+          </Button>
+        ) : (
+          <FollowButton user={user} />
+        )}
       </Box>
       {isLoading ? (
         <Box
@@ -198,7 +240,7 @@ const Profile = () => {
             post={p}
             like={like}
             unlike={unlike}
-            deletePost={deletePost}
+            remove={remove}
           />
         ))
       ) : (
@@ -207,7 +249,7 @@ const Profile = () => {
           color="text.secondary"
           sx={{ textAlign: "center" }}
         >
-          You have not posted anything yet
+          User have not posted anything yet
         </Typography>
       )}
     </Box>

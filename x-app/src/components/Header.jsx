@@ -12,16 +12,34 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUIState } from "../providers/UIStateProvider";
 import { useAppTheme } from "../providers/AppThemeProvider";
+import { useAuth } from "../providers/AuthProvider";
+import { useEffect } from "react";
 
 const Header = () => {
-  const { setOpenDrawer } = useUIState();
+  const { setOpenDrawer, notiCount, setNotiCount } = useUIState();
   const { mode, setMode } = useAppTheme();
+  const { auth } = useAuth();
 
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const api = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem("token");
+    (async () => {
+      const res = await fetch(`${api}/notis`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const notis = await res.json();
+      const count = auth ? notis.filter((noti) => !noti.read).length : 0;
+      setNotiCount(count);
+    })();
+  }, [auth, notiCount]);
+
   return (
-    <AppBar position="static" sx={{ bgcolor: "header.background" }}>
+    <AppBar position="fixed" sx={{ bgcolor: "header.background" }}>
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         {pathname === "/" ? (
           <IconButton
@@ -48,7 +66,13 @@ const Header = () => {
           <XIcon />
         </IconButton>
         <Box>
-          <IconButton color="inherit" sx={{ mr: 1 }}>
+          <IconButton
+            color="inherit"
+            sx={{ mr: 1 }}
+            onClick={() => {
+              navigate("/search");
+            }}
+          >
             <UsersIcon />
           </IconButton>
           {mode === "dark" ? (
@@ -61,8 +85,12 @@ const Header = () => {
             </IconButton>
           )}
 
-          <IconButton color="inherit" edge="end">
-            <Badge badgeContent={1} color="error">
+          <IconButton
+            color="inherit"
+            edge="end"
+            onClick={() => navigate("/notis")}
+          >
+            <Badge badgeContent={notiCount} color="error">
               <NotiIcon />
             </Badge>
           </IconButton>

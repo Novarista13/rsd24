@@ -28,7 +28,7 @@ const AppDrawer = () => {
   const { auth, setAuth, authUser, setAuthUser } = useAuth();
   const navigate = useNavigate();
   const photo = `${import.meta.env.VITE_PROFILE_PHOTOS}/${authUser?.profile}`;
-  console.log(authUser);
+
   return (
     <Drawer
       anchor="left"

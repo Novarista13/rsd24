@@ -26,7 +26,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../providers/AuthProvider";
 
-const PostCard = ({ post, like, unlike, deletePost }) => {
+const PostCard = ({ post, type, like, unlike, remove, focus }) => {
   const navigate = useNavigate();
   const { auth, authUser } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
@@ -35,9 +35,16 @@ const PostCard = ({ post, like, unlike, deletePost }) => {
   const photo = `${import.meta.env.VITE_PROFILE_PHOTOS}/${
     post?.owner?.profile
   }`;
-
   return (
-    <Card sx={{ mb: 5 }}>
+    <Card
+      variant="outlined"
+      sx={{
+        bgcolor: focus ? "post.background" : "transparent",
+        my: 5,
+        maxWidth: type === "comment" ? 500 : "auto",
+        mx: "auto",
+      }}
+    >
       <CardContent>
         <Box
           sx={{
@@ -53,7 +60,7 @@ const PostCard = ({ post, like, unlike, deletePost }) => {
               justifyContent: "flex-start",
               gap: 2,
             }}
-            onClick={() => navigate(`/profile/${post?.owner._id}`)}
+            onClick={() => navigate(`/profile/${post?.owner?._id}`)}
           >
             <Avatar
               src={photo}
@@ -64,7 +71,7 @@ const PostCard = ({ post, like, unlike, deletePost }) => {
                 cursor: "pointer",
               }}
             >
-              {post?.owner?.name[0]}
+              {post?.owner?.name && post?.owner?.name[0]}
             </Avatar>
             <Box>
               <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -76,7 +83,7 @@ const PostCard = ({ post, like, unlike, deletePost }) => {
                     cursor: "pointer",
                   }}
                 >
-                  {post?.owner?.name}
+                  {post?.owner?.name && post?.owner?.name}
                 </Typography>
                 <Typography
                   sx={{
@@ -99,44 +106,39 @@ const PostCard = ({ post, like, unlike, deletePost }) => {
               </Typography>
             </Box>
           </CardActionArea>
-          <Box>
-            <IconButton
-              onClick={(e) => {
-                setShowMenu(true);
-                setMenuPosition(e.currentTarget);
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              anchorEl={menuPosition}
-              open={showMenu}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              onClose={() => {
-                setShowMenu(false);
-              }}
-            >
-              {authUser?._id === post?.owner._id && (
+          {authUser && authUser._id === post.owner._id && (
+            <Box>
+              <IconButton
+                onClick={(e) => {
+                  setShowMenu(true);
+                  setMenuPosition(e.currentTarget);
+                }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                anchorEl={menuPosition}
+                open={showMenu}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                onClose={() => {
+                  setShowMenu(false);
+                }}
+              >
                 <MenuItem
-                  onClick={async () => {
-                    deletePost(post?._id);
-                    const token = localStorage.getItem("token");
+                  onClick={() => {
                     const api = import.meta.env.VITE_API_URL;
-                    console.log(post?._id);
-                    const res = await fetch(`${api}/posts/${post?._id}`, {
+                    fetch(`${api}/posts/${post._id}`, {
                       method: "DELETE",
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                      },
                     });
-                    console.log(res);
+
+                    remove(post._id);
                   }}
                 >
                   <ListItemIcon>
@@ -144,17 +146,23 @@ const PostCard = ({ post, like, unlike, deletePost }) => {
                   </ListItemIcon>
                   <ListItemText primary="Delete" />
                 </MenuItem>
-              )}
-            </Menu>
-          </Box>
+              </Menu>
+            </Box>
+          )}
         </Box>
-        <CardActionArea>
+        <CardActionArea
+          onClick={() => {
+            navigate(`/posts/${post._id}`);
+          }}
+        >
           <Typography
-            sx={{ py: 2, px: 1 }}
-            variant="body2"
-            color="text.secondary"
+            sx={{
+              py: 2,
+              px: 1,
+              fontSize: focus ? "1.6em" : "1.2em",
+            }}
           >
-            {post?.body}
+            {post.body}
           </Typography>
         </CardActionArea>
         <Box sx={{ display: "flex", justifyContent: "space-around" }}>
@@ -186,11 +194,3 @@ const PostCard = ({ post, like, unlike, deletePost }) => {
 };
 
 export default PostCard;
-{
-  /* <Box sx={{ display: "flex", alignItems: "center" }}>
-  <Avatar sx={{ width: 40, height: 40, background: pink[500] }}>m</Avatar>
-  <Box sx={{ ml: 2 }}>
-    
-  </Box>
-</Box>; */
-}

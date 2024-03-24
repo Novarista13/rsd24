@@ -6,14 +6,19 @@ const app = express();
 const cors = require("cors");
 app.use(cors());
 
+require("express-ws")(app);
+
 app.use("/static", express.static("./photos"));
 
 const { usersRouter } = require("./routers/users");
 app.use(usersRouter);
 
 const { postsRouter } = require("./routers/posts");
-const { use } = require("bcrypt/promises");
+// const { use } = require("bcrypt/promises");
 app.use(postsRouter);
+
+const { notisRouter } = require("./routers/notis");
+app.use(notisRouter);
 
 app.listen(process.env.PORT, () => {
   console.log(`X API running at ${process.env.PORT}`);

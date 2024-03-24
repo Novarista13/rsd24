@@ -11,6 +11,7 @@ const UIStateProvider = ({ children }) => {
   const [openDrawer, setOpenDrawer] = useState(false);
   const [openFeedback, setOpenFeedback] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [notiCount, setNotiCount] = useState(0);
 
   return (
     <UIStateContext.Provider
@@ -21,6 +22,8 @@ const UIStateProvider = ({ children }) => {
         setOpenFeedback,
         feedbackMessage,
         setFeedbackMessage,
+        notiCount,
+        setNotiCount,
       }}
     >
       {children}
