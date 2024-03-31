@@ -1,10 +1,9 @@
+import Movies from "@/components/Movies";
 import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
-async function fetchGenres() {
+async function fetchTrending() {
   const token = process.env.TOKEN;
-  const res = await fetch("", {
+  const res = await fetch("https://api.themoviedb.org/3/trending/movie/day", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -12,22 +11,14 @@ async function fetchGenres() {
   return await res.json();
 }
 
-const Home = () => {
-  const data = fetchGenres();
-  return (
-    <div className="flex">
-      <div className="min-w-[250px] pr-4 border-r">
-        <Button className="w-full justify-start">All Movies</Button>
-        {data.genres.map((genre) => (
-          <Button className="w-full justify-start">{genre}</Button>
-        ))}
-      </div>
-    </div>
-  );
-};
+export default async function Home() {
+  const trendings = await fetchTrending();
 
-export default Home;
-{
-  /* <h1>Next Movie</h1>
-      <Link href="/genres">Genres</Link> */
+  return (
+    <>
+      <h3 className="text-lg mb-3">Trendings</h3>
+
+      <Movies movies={trendings.results} />
+    </>
+  );
 }
